@@ -1,10 +1,9 @@
 ﻿using static System.MemoryExtensions;
-using System.IO;
-using System.Diagnostics;
+using System.Text;
 
 namespace StreamLine;
 
-public ref struct Liner
+public ref struct ByteLiner
 {
   private int begin = 0;
   private int end = 0;
@@ -13,7 +12,7 @@ public ref struct Liner
   private Span<byte> span;
   private readonly int spanLength;
 
-  public Liner(Stream stream, Span<byte> buffer) {
+  public ByteLiner(Stream stream, Span<byte> buffer) {
     if(buffer == null || buffer.Length == 0) throw new ArgumentException("buffer cannot be null or have length of zero");
     if(stream == null) throw new ArgumentException("stream cannot be null");
     
@@ -60,5 +59,27 @@ public ref struct Liner
         }
       }
     }
+  }
+}
+
+public ref struct CharLiner {
+  private ByteLiner bliner;
+  private Encoding encoding;
+  private Span<char> charBuffer;
+
+  public CharLiner(Stream stream, Span<byte> byteBuffer, Span<char> charBuffer, Encoding encoding) {
+    if(charBuffer.Length < byteBuffer.Length)
+      throw new Exception("charBuffer lenght must be at least as long as byteBuffer to store the decoded chars.");
+    this.bliner = new ByteLiner(stream, byteBuffer);
+    this.encoding = encoding;
+    this.charBuffer = charBuffer;
+  }
+
+  public Span<char> ReadLine() {
+    var bytes = bliner.ReadLine();
+    var charsDecoded = encoding.GetChars(bytes, charBuffer);
+    if(charsDecoded <= 0)
+      return null;
+    return charBuffer[..charsDecoded];
   }
 }
