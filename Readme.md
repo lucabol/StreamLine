@@ -3,6 +3,8 @@ Reads lines of ascii or endoded text from a stream without allocating memory and
 
 If one of the lines is larger than the buffer, an exception is thrown. Such is life in no-allocation land.
 
+I have no optimized the code or tested it beyond the testcases.
+
 ## Example
 Read Ascii lines with:
 
