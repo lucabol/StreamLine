@@ -13,7 +13,7 @@ using System.IO.Pipelines;
 [MemoryDiagnoser, Orderer(SummaryOrderPolicy.FastestToSlowest)]
 public class ReadlineBench {
 
-  [Params(1000, 100_000, 1_000_000)]
+  [Params(100, 1000, 100_000, 1_000_000)]
   public int ItemCount;
 
   public int BufferLength = 256;
@@ -58,7 +58,7 @@ public class ReadlineBench {
   [GlobalSetup]
   public void GlobalSetup() {
     memoryStream = CreateStreamOfItems();
-    var i = MyReadline();
+    var i = MyCharsReadLine();
     memoryStream = CreateStreamOfItems();
     var j = StandardReadLine();
     Assert(i == j);
@@ -70,29 +70,30 @@ public class ReadlineBench {
   }
 
   [Benchmark(Baseline = true)]
-  public int MyReadlineRaw() {
+  public int MyByteReadLine() {
 
     Span<byte> buffer = stackalloc byte[BufferLength];
-    Liner l = new(memoryStream, buffer);
+    ByteLiner l = new(memoryStream, buffer);
     Span<byte> span = stackalloc byte[0]; // https://github.com/dotnet/roslyn/issues/53014
 
     int sum = 0;
     while((span = l.ReadLine()) != null) {
-      //sum += utf8.GetCharCount(span);
       sum += span.Length;
     }
     return sum;
   }
   [Benchmark]
-  public int MyReadline() {
+  public int MyCharsReadLine() {
 
     Span<byte> buffer = stackalloc byte[BufferLength];
-    Liner l = new(memoryStream, buffer);
-    Span<byte> span = stackalloc byte[0]; // https://github.com/dotnet/roslyn/issues/53014
+    Span<char> outBuffer = stackalloc char[BufferLength];
+
+    CharLiner l = new(memoryStream, buffer, outBuffer, utf8);
 
     int sum = 0;
-    while((span = l.ReadLine()) != null) {
-      sum += utf8.GetCharCount(span);
+    Span<char> chars = stackalloc char[0];
+    while((chars = l.ReadLine()) != null) {
+      sum += chars.Length;
     }
     return sum;
   }
