@@ -51,7 +51,7 @@ public class UnitTest1
       var writeStream = new MemoryStream();
 
       Span<byte> buffer = stackalloc byte[bufferLength];
-      Liner l = new(readStream, buffer);
+      ByteLiner l = new(readStream, buffer);
       Span<byte> span = stackalloc byte[0]; // https://github.com/dotnet/roslyn/issues/53014
 
       while((span = l.ReadLine()) != null) {
@@ -65,9 +65,9 @@ public class UnitTest1
     {
       var readStream = new MemoryStream(TestString1);
       var buffer = new byte[3];
-      Assert.Throws<ArgumentException>(() => new Liner(null!, buffer));
-      Assert.Throws<ArgumentException>(() => new Liner(readStream, null!));
-      Assert.Throws<ArgumentException>(() => new Liner(readStream, new byte[0]));
+      Assert.Throws<ArgumentException>(() => new ByteLiner(null!, buffer));
+      Assert.Throws<ArgumentException>(() => new ByteLiner(readStream, null!));
+      Assert.Throws<ArgumentException>(() => new ByteLiner(readStream, new byte[0]));
     }
 
     [Theory]
